@@ -43,6 +43,21 @@
         .active-tab { background: #334155; color: white !important; border: 1px solid #94a3b8 !important; }
         .modal-overlay { background: rgba(0, 0, 0, 0.96); backdrop-filter: blur(15px); z-index: 100; }
         
+        /* 카드 컨테이너 스타일 복구 */
+        .card-container {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: all 0.2s;
+            backdrop-filter: blur(8px);
+        }
+        .card-container:hover {
+            border-color: #a855f7;
+            background: rgba(30, 41, 59, 0.9);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
         .editable-area {
             width: 100%;
             background: rgba(15, 23, 42, 0.98);
