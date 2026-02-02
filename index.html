@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -476,8 +477,8 @@
                 
                 const styleInstruction = `Generate a long, highly detailed music style prompt in English for Suno AI. Include genres, textures, vocal processing, and audio engineering terms.`;
                 const systemPrompt = lang === 'en'
-                    ? `Master Producer. BOTH lyrics and style_prompt in English. [CRITICAL: style_prompt strictly limited to under 850 characters. Lyrics should be standard length]. JSON: {"style_prompt": "string", "lyrics": "string"}`
-                    : `마스터 프로듀서. 가사는 한국어, 'style_prompt'는 무조건 매우 긴 영어(English) 태그로만 작성. [치명적 규칙: style_prompt는 공백 포함 850자 이내로 엄격히 제한. 가사는 곡 길이에 맞게 작성]. JSON: {"style_prompt": "string", "lyrics": "string"}`;
+                    ? `Master Composer. BOTH lyrics and style_prompt in English. [CRITICAL: Include Chords (e.g., (Am7)) and Structure tags (e.g., [Verse]) in lyrics]. [CRITICAL: style_prompt strictly limited to under 850 characters]. JSON: {"style_prompt": "string", "lyrics": "string"}`
+                    : `마스터 작곡가. 가사는 한국어, 'style_prompt'는 무조건 매우 긴 영어(English) 태그로만 작성. [치명적 규칙 1: 가사에 반드시 코드 진행(예: (Dm9), (G7))과 구조([Verse], [Chorus])를 포함하여 작곡할 것]. [치명적 규칙 2: style_prompt는 공백 포함 850자 이내로 엄격히 제한]. JSON: {"style_prompt": "string", "lyrics": "string"}`;
                 
                 const instString = selectedInstruments.join(', ');
                 const moodString = selectedMoods.join(', ');
