@@ -417,8 +417,6 @@
             const clearAllLibrary = () => { setLibrary([]); setShowClearConfirm(false); showToast("보관함을 모두 비웠습니다."); };
             const loadLibraryItem = (item) => { setTitle(item.title); setEditableLyrics(item.lyrics); setEditableStyle(item.style); setHasResult(true); showToast(`'${item.title}' 작업을 불러왔습니다.`); };
 
-            // Removed handleRefineLyrics
-
             const handleGenerate = async (lang = 'ko') => {
                 const currentKey = apiProvider === 'gemini' ? geminiKey : gptKey;
                 if (!currentKey) { setShowApiModal(true); return; }
@@ -485,7 +483,7 @@
                             </div>
                             <button onClick={() => setIsEntered(true)} className="px-24 py-8 bg-purple-600 rounded-full font-black text-2xl text-white shadow-2xl active:scale-95 transition-all flex items-center gap-5 animate-pulse-glow uppercase tracking-widest text-left">START PRODUCTION</button>
                         </div>
-                        <div className="absolute bottom-10 text-white/40 font-black text-xs uppercase tracking-[0.6em] text-left">Electoy Studio • Master v14.6</div>
+                        <div className="absolute bottom-10 text-white/40 font-black text-xs uppercase tracking-[0.6em] text-left">Electoy Studio • Master v14.7</div>
                     </div>
 
                     <header className="shrink-0 bg-slate-900/90 backdrop-blur-md border-b-2 border-slate-800 p-6 flex items-center justify-between sticky top-0 z-50">
@@ -728,4 +726,5 @@
     </script>
 </body>
 </html>
+
 
