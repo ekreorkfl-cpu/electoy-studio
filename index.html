@@ -474,7 +474,10 @@
 
                     if (resultText) {
                         const parsed = JSON.parse(resultText);
-                        setEditableStyle(parsed.style_prompt); setEditableLyrics(parsed.lyrics); setHasResult(true);
+                        setEditableStyle(parsed.style_prompt); 
+                        // Fix 2: Force lyrics empty in instrumental mode regardless of API return
+                        setEditableLyrics(isInstrumental ? "" : parsed.lyrics); 
+                        setHasResult(true);
                     }
                 } catch (e) { showToast('생성 실패: API 키를 확인해주세요.'); console.error(e); } finally { setGeneratingType(null); }
             };
@@ -535,14 +538,17 @@
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                                <button onClick={() => setShowPersonaModal(true)} className="card-container text-left hover:border-slate-500 active:scale-95 transition-all min-h-[160px]">
-                                    <div className="text-xs text-slate-400 font-bold mb-4 uppercase tracking-widest flex items-center gap-2 text-left"><Icon name="User" size={16}/> 보컬 페르소나</div>
-                                    <div className="space-y-2 mb-4 text-left">
-                                        <div className="flex flex-wrap gap-2 text-left"><span className="persona-badge text-left">{persona.name}</span><span className="persona-badge text-left">{persona.gender}</span><span className="persona-badge text-left">{persona.age}</span></div>
-                                        <div className="text-lg text-slate-200 font-bold leading-snug text-left">{persona.tone} / {persona.style}</div>
-                                    </div>
-                                </button>
+                            <div className={`grid ${!isInstrumental ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-8 text-left`}>
+                                {/* Fix 1: Hide Vocal Persona card entirely when Instrumental mode is ON */}
+                                {!isInstrumental && (
+                                    <button onClick={() => setShowPersonaModal(true)} className="card-container text-left hover:border-slate-500 active:scale-95 transition-all min-h-[160px]">
+                                        <div className="text-xs text-slate-400 font-bold mb-4 uppercase tracking-widest flex items-center gap-2 text-left"><Icon name="User" size={16}/> 보컬 페르소나</div>
+                                        <div className="space-y-2 mb-4 text-left">
+                                            <div className="flex flex-wrap gap-2 text-left"><span className="persona-badge text-left">{persona.name}</span><span className="persona-badge text-left">{persona.gender}</span><span className="persona-badge text-left">{persona.age}</span></div>
+                                            <div className="text-lg text-slate-200 font-bold leading-snug text-left">{persona.tone} / {persona.style}</div>
+                                        </div>
+                                    </button>
+                                )}
                                 <div className="grid grid-cols-2 gap-6 text-left">
                                     <button onClick={() => setShowMoodModal(true)} className="card-container text-left hover:border-slate-500 active:scale-95 transition-all text-left">
                                         <div className="text-xs text-slate-400 font-bold mb-4 uppercase tracking-widest flex items-center gap-2 text-left"><Icon name="Heart" size={16}/> 분위기</div>
@@ -754,3 +760,4 @@
     </script>
 </body>
 </html>
+
