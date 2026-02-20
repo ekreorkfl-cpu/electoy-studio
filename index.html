@@ -457,9 +457,9 @@
                     let response;
                     
                     if (apiProvider === 'gemini') {
-                         console.log("🚀 현재 실행 중인 모델: gemini-1.5-flash");
-                         // 진짜 에러를 찾기 위해, 다른 모델로 우회하는 기능을 완전히 삭제하고 오직 표준 모델 단 하나만 호출합니다.
-                         response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${currentKey}`, {
+                         console.log("🚀 현재 실행 중인 모델: gemini-2.5-flash");
+                         // 최신 정식 버전인 gemini-2.5-flash로 완전히 교체했습니다.
+                         response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 
                                 contents: [{ parts: [{ text: userQuery }] }], 
@@ -813,3 +813,4 @@
     </script>
 </body>
 </html>
+
