@@ -457,9 +457,9 @@
                     let response;
                     
                     if (apiProvider === 'gemini') {
-                         console.log("🚀 현재 실행 중인 모델: gemini-2.0-flash");
-                         // API 모델 이름을 최신 정식 버전인 gemini-2.0-flash로 완벽하게 교체했습니다.
-                         response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${currentKey}`, {
+                         console.log("🚀 현재 실행 중인 모델: gemini-1.5-flash");
+                         // API 모델 이름을 가장 안정적인 범용 정식 버전인 gemini-1.5-flash로 교체했습니다.
+                         response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${currentKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } })
                         });
@@ -807,6 +807,7 @@
     </script>
 </body>
 </html>
+
 
 
 
