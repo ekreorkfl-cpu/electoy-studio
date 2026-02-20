@@ -467,7 +467,7 @@
                             throw new Error(errData?.error?.message || `API Error: ${response.status}`);
                         }
                         const data = await response.json();
-                        resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
                     } else {
                         response = await fetch('https://api.openai.com/v1/chat/completions', {
                             method: 'POST',
@@ -483,12 +483,18 @@
                             throw new Error(errData?.error?.message || `API Error: ${response.status}`);
                         }
                         const data = await response.json();
-                        resultText = data.choices[0].message.content;
+                        resultText = data.choices[0].message.content || "";
                     }
 
                     if (resultText) {
                         const cleanedText = resultText.replace(/```json/gi, '').replace(/```/g, '').trim();
-                        const parsed = JSON.parse(cleanedText);
+                        let parsed;
+                        try {
+                            parsed = JSON.parse(cleanedText);
+                        } catch (parseErr) {
+                            console.error("JSON Parsing Error:", cleanedText);
+                            throw new Error("AI가 올바른 형식을 만들지 못했습니다. 다시 시도해주세요.");
+                        }
                         setEditableStyle(parsed.style_prompt || ""); 
                         setEditableLyrics(isInstrumental ? "" : (parsed.lyrics || "")); 
                         setHasResult(true);
@@ -499,7 +505,7 @@
                 } catch (e) { 
                     let errorMsg = e.message;
                     if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
-                        showToast('API 키가 올바르지 않습니다. 키를 다시 확인해주세요.');
+                        showToast('API 키가 올바르지 않습니다. 공백 없이 정확히 입력했는지 확인해주세요.');
                     } else if (errorMsg.includes('401') || errorMsg.includes('Incorrect API key')) {
                         showToast('인증 오류: API 키가 유효하지 않거나 만료되었습니다.');
                     } else {
