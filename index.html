@@ -91,7 +91,7 @@
             white-space: nowrap;
         }
 
-        /* [조은 요청] 배경이 밝고 잘 보이도록 수정 */
+        /* 배경이 밝고 잘 보이도록 수정 */
         .entrance-overlay {
             position: fixed;
             inset: 0;
@@ -288,7 +288,6 @@
 
             const isInstrumental = persona.gender === '연주곡 (Instrumental)';
 
-            // [조은 요청] 발라드 카테고리 8개 완전 복구
             const themes = [
                 { category: '인기 장르', items: [
                     { id: 'p_kpop', label: '🎤 K-POP / 댄스', genre: 'K-Pop', moods: ['활기찬', '당당한'], inst: ['신디사이저'], gender: '여성', bpm: 128 },
@@ -408,7 +407,6 @@
 
             const handleSaveToLibrary = () => {
                 if (!editableStyle) { showToast("먼저 곡을 생성해 주세요!"); return; }
-                // Allow empty lyrics if instrumental
                 if (!isInstrumental && !editableLyrics) { showToast("먼저 곡을 생성해 주세요!"); return; }
                 
                 const newProject = { 
@@ -427,59 +425,90 @@
             const loadLibraryItem = (item) => { setTitle(item.title); setEditableLyrics(item.lyrics); setEditableStyle(item.style); setHasResult(true); showToast(`'${item.title}' 작업을 불러왔습니다.`); };
 
             const handleGenerate = async (lang = 'ko') => {
-                const currentKey = apiProvider === 'gemini' ? geminiKey : gptKey;
-                if (!currentKey) { setShowApiModal(true); return; }
+                const currentGeminiKey = geminiKey ? geminiKey.trim() : '';
+                const currentGptKey = gptKey ? gptKey.trim() : '';
+                const currentKey = apiProvider === 'gemini' ? currentGeminiKey : currentGptKey;
+                
+                if (!currentKey) { 
+                    showToast(apiProvider === 'gemini' ? "Gemini API 키를 먼저 입력해주세요!" : "GPT API 키를 먼저 입력해주세요!");
+                    setShowApiModal(true); 
+                    return; 
+                }
                 
                 setGeneratingType(lang); setHasResult(false);
                 
-                // Optimized System Prompt Logic
-                let systemPrompt = '';
-                if (isInstrumental) {
-                    systemPrompt = lang === 'en'
-                        ? `Master Composer. Generate a highly detailed 'style_prompt' for Suno AI in English based on the user's idea. The track is Instrumental, so NO lyrics. [CRITICAL: style_prompt strictly limited to under 800 characters]. JSON: {"style_prompt": "string", "lyrics": ""}`
-                        : `마스터 작곡가. 연주곡(Instrumental) 모드. 가사는 비워두고, 'style_prompt'는 무조건 영어(English)로 작성. [치명적 규칙: style_prompt는 공백 포함 800자 이내로 엄격히 제한]. JSON: {"style_prompt": "string", "lyrics": ""}`;
-                } else {
-                    systemPrompt = lang === 'en'
-                        ? `Master Composer. BOTH lyrics and style_prompt in English. [CRITICAL: Include Chords (e.g., (Am7)) and Structure tags (e.g., [Verse]) in lyrics]. [CRITICAL: style_prompt strictly limited to under 800 characters]. JSON: {"style_prompt": "string", "lyrics": "string"}`
-                        : `마스터 작곡가. 가사는 한국어, 'style_prompt'는 무조건 매우 긴 영어(English) 태그로만 작성. [치명적 규칙 1: 가사에 반드시 코드 진행(예: (Dm9), (G7))과 구조([Verse], [Chorus])를 포함하여 작곡할 것]. [치명적 규칙 2: style_prompt는 공백 포함 800자 이내로 엄격히 제한]. JSON: {"style_prompt": "string", "lyrics": "string"}`;
-                }
-                
-                const instString = selectedInstruments.join(', ');
-                const moodString = selectedMoods.join(', ');
-                const userQuery = `제목: ${title}, 장르: ${selectedGenres.join(',')}, 무드: ${moodString}, 에너지레벨: ${energy}, 영감: ${prompt}, 페르소나: ${JSON.stringify(persona)}, 사용 악기: ${instString}, BPM: ${bpm}`;
-
                 try {
+                    let systemPrompt = '';
+                    if (isInstrumental) {
+                        systemPrompt = lang === 'en'
+                            ? `Master Composer. Generate a highly detailed 'style_prompt' for Suno AI in English based on the user's idea. The track is Instrumental, so NO lyrics. [CRITICAL: style_prompt strictly limited to under 800 characters]. JSON: {"style_prompt": "string", "lyrics": ""}`
+                            : `마스터 작곡가. 연주곡(Instrumental) 모드. 가사는 비워두고, 'style_prompt'는 무조건 영어(English)로 작성. [치명적 규칙: style_prompt는 공백 포함 800자 이내로 엄격히 제한]. JSON: {"style_prompt": "string", "lyrics": ""}`;
+                    } else {
+                        systemPrompt = lang === 'en'
+                            ? `Master Composer. BOTH lyrics and style_prompt in English. [CRITICAL: Include Chords (e.g., (Am7)) and Structure tags (e.g., [Verse]) in lyrics]. [CRITICAL: style_prompt strictly limited to under 800 characters]. JSON: {"style_prompt": "string", "lyrics": "string"}`
+                            : `마스터 작곡가. 가사는 한국어, 'style_prompt'는 무조건 매우 긴 영어(English) 태그로만 작성. [치명적 규칙 1: 가사에 반드시 코드 진행(예: (Dm9), (G7))과 구조([Verse], [Chorus])를 포함하여 작곡할 것]. [치명적 규칙 2: style_prompt는 공백 포함 800자 이내로 엄격히 제한]. JSON: {"style_prompt": "string", "lyrics": "string"}`;
+                    }
+                    
+                    const instString = selectedInstruments.join(', ');
+                    const moodString = selectedMoods.join(', ');
+                    const userQuery = `제목: ${title}, 장르: ${selectedGenres.join(',')}, 무드: ${moodString}, 에너지레벨: ${energy}, 영감: ${prompt}, 페르소나: ${JSON.stringify(persona)}, 사용 악기: ${instString}, BPM: ${bpm}`;
+
                     let resultText = "";
+                    let response;
                     
                     if (apiProvider === 'gemini') {
-                         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiKey}`, {
+                         response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } })
                         });
+                         
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            throw new Error(errData?.error?.message || `API Error: ${response.status}`);
+                        }
                         const data = await response.json();
                         resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
                     } else {
-                        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        response = await fetch('https://api.openai.com/v1/chat/completions', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${gptKey}` },
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentKey}` },
                             body: JSON.stringify({
                                 model: "gpt-4o",
                                 messages: [{role: "system", content: systemPrompt}, {role: "user", content: userQuery}],
                                 response_format: { type: "json_object" }
                             })
                         });
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            throw new Error(errData?.error?.message || `API Error: ${response.status}`);
+                        }
                         const data = await response.json();
                         resultText = data.choices[0].message.content;
                     }
 
                     if (resultText) {
-                        const parsed = JSON.parse(resultText);
-                        setEditableStyle(parsed.style_prompt); 
-                        // Fix 2: Force lyrics empty in instrumental mode regardless of API return
-                        setEditableLyrics(isInstrumental ? "" : parsed.lyrics); 
+                        const cleanedText = resultText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                        const parsed = JSON.parse(cleanedText);
+                        setEditableStyle(parsed.style_prompt || ""); 
+                        setEditableLyrics(isInstrumental ? "" : (parsed.lyrics || "")); 
                         setHasResult(true);
+                        showToast("생성이 완료되었습니다!");
+                    } else {
+                        throw new Error("결과값이 비어있습니다.");
                     }
-                } catch (e) { showToast('생성 실패: API 키를 확인해주세요.'); console.error(e); } finally { setGeneratingType(null); }
+                } catch (e) { 
+                    let errorMsg = e.message;
+                    if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+                        showToast('API 키가 올바르지 않습니다. 키를 다시 확인해주세요.');
+                    } else if (errorMsg.includes('401') || errorMsg.includes('Incorrect API key')) {
+                        showToast('인증 오류: API 키가 유효하지 않거나 만료되었습니다.');
+                    } else {
+                        showToast(`생성 실패: ${errorMsg}`);
+                    }
+                    console.error("Generation Error:", e); 
+                } finally { 
+                    setGeneratingType(null); 
+                }
             };
 
             const copyToClipboard = (text, type) => {
@@ -487,8 +516,7 @@
                 setCopyStatus(prev => ({ ...prev, [type]: true })); setTimeout(() => setCopyStatus(prev => ({ ...prev, [type]: false })), 2000);
             };
 
-            // Fix for ReferenceError: Define apiKey derived from state
-            const apiKey = apiProvider === 'gemini' ? geminiKey : gptKey;
+            const activeKey = apiProvider === 'gemini' ? (geminiKey ? geminiKey.trim() : '') : (gptKey ? gptKey.trim() : '');
 
             return (
                 <div className="app-container text-slate-200 bg-slate-950 text-left">
@@ -507,7 +535,7 @@
 
                     <header className="shrink-0 bg-slate-900/90 backdrop-blur-md border-b-2 border-slate-800 p-6 flex items-center justify-between sticky top-0 z-50">
                         <div className="flex items-center gap-4 text-left"><div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg text-white"><Icon name="Music" size={24} /></div><h1 className="font-black text-2xl uppercase tracking-tight text-white">Electoy Studio</h1></div>
-                        <div className="flex items-center gap-3 text-left"><button onClick={() => showToast("주소 복사됨!")} className="p-4 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-inner text-left"><Icon name="Share" size={24} /></button><button onClick={() => setShowApiModal(true)} className={`p-4 rounded-xl border border-slate-700 ${apiKey ? 'text-green-400 bg-green-900/20' : 'text-slate-400 bg-slate-800'} text-left`}><Icon name="Key" size={24} /></button></div>
+                        <div className="flex items-center gap-3 text-left"><button onClick={() => showToast("주소 복사됨!")} className="p-4 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-inner text-left"><Icon name="Share" size={24} /></button><button onClick={() => setShowApiModal(true)} className={`p-4 rounded-xl border border-slate-700 ${activeKey ? 'text-green-400 bg-green-900/20' : 'text-slate-400 bg-slate-800'} text-left`}><Icon name="Key" size={24} /></button></div>
                     </header>
                     <main className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-12 pb-56 text-left">
                         {toast.show && <div className="fixed top-28 left-1/2 -translate-x-1/2 z-[200] px-10 py-5 bg-slate-800 border border-slate-600 text-white font-black text-xl rounded-full shadow-2xl animate-bounce text-center">{toast.message}</div>}
@@ -539,7 +567,7 @@
                             )}
 
                             <div className={`grid ${!isInstrumental ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-8 text-left`}>
-                                {/* Fix 1: Hide Vocal Persona card entirely when Instrumental mode is ON */}
+                                {/* Hide Vocal Persona card entirely when Instrumental mode is ON */}
                                 {!isInstrumental && (
                                     <button onClick={() => setShowPersonaModal(true)} className="card-container text-left hover:border-slate-500 active:scale-95 transition-all min-h-[160px]">
                                         <div className="text-xs text-slate-400 font-bold mb-4 uppercase tracking-widest flex items-center gap-2 text-left"><Icon name="User" size={16}/> 보컬 페르소나</div>
@@ -581,11 +609,11 @@
                         </section>
 
                         <section className="space-y-8 text-left"><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="음악적 아이디어를 자유롭게 적어보세요..." className="w-full bg-slate-900 border border-slate-700 rounded-[3rem] p-10 h-80 text-2xl font-bold outline-none focus:border-slate-500 transition-all text-white shadow-inner leading-relaxed text-left" /><div className="grid grid-cols-2 gap-8 text-white text-left">
-                            <button onClick={() => handleGenerate('ko')} disabled={generatingType !== null} className="py-8 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-[2.5rem] font-black text-2xl shadow-xl flex items-center justify-center gap-4 active:scale-95 transition-all text-center">
-                                {generatingType === 'ko' ? <Icon name="Refresh" className="animate-spin" size={28} /> : <Icon name="Sparkles" size={28} />} 생성
+                            <button type="button" onClick={() => handleGenerate('ko')} disabled={generatingType !== null} className={`py-8 rounded-[2.5rem] font-black text-2xl shadow-xl flex items-center justify-center gap-4 transition-all text-center border ${generatingType !== null ? 'bg-slate-800 border-slate-600 text-slate-500 opacity-70 cursor-not-allowed' : 'bg-slate-800 border-slate-600 text-white hover:bg-slate-700 active:scale-95'}`}>
+                                {generatingType === 'ko' ? <Icon name="Refresh" className="animate-spin text-purple-400" size={28} /> : <Icon name="Sparkles" size={28} />} 생성
                             </button>
-                            <button onClick={() => handleGenerate('en')} disabled={generatingType !== null} className="py-8 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-[2.5rem] font-black text-2xl flex items-center justify-center gap-4 active:scale-95 shadow-xl text-center">
-                                {generatingType === 'en' ? <Icon name="Refresh" className="animate-spin" size={28} /> : <Icon name="Globe" size={28} />} ENGLISH
+                            <button type="button" onClick={() => handleGenerate('en')} disabled={generatingType !== null} className={`py-8 rounded-[2.5rem] font-black text-2xl shadow-xl flex items-center justify-center gap-4 transition-all text-center border ${generatingType !== null ? 'bg-slate-800 border-slate-600 text-slate-500 opacity-70 cursor-not-allowed' : 'bg-slate-800 border-slate-600 text-white hover:bg-slate-700 active:scale-95'}`}>
+                                {generatingType === 'en' ? <Icon name="Refresh" className="animate-spin text-blue-400" size={28} /> : <Icon name="Globe" size={28} />} ENGLISH
                             </button>
                         </div></section>
 
@@ -678,7 +706,15 @@
                                         </div>
                                     )}
                                 </div>
-                                <button onClick={() => { setShowApiModal(false); showToast("API 설정이 저장되었습니다."); }} className="w-full bg-slate-700 hover:bg-slate-600 py-8 rounded-[2rem] font-black text-2xl shadow-xl text-center text-white">Save & Close</button>
+                                <button onClick={() => { 
+                                    const keyToCheck = apiProvider === 'gemini' ? geminiKey?.trim() : gptKey?.trim();
+                                    setShowApiModal(false); 
+                                    if (keyToCheck) {
+                                        showToast("API 설정이 저장되었습니다."); 
+                                    } else {
+                                        showToast("주의: API 키가 입력되지 않았습니다.");
+                                    }
+                                }} className="w-full bg-slate-700 hover:bg-slate-600 py-8 rounded-[2rem] font-black text-2xl shadow-xl text-center text-white">Save & Close</button>
                             </div>
                         </div>
                     )}
@@ -760,4 +796,5 @@
     </script>
 </body>
 </html>
+
 
