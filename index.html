@@ -457,7 +457,7 @@
                     let response;
                     
                     if (apiProvider === 'gemini') {
-                         // API 모델 이름을 정식 공개 버전인 gemini-2.0-flash 로 수정하여 404 에러 해결
+                         // API 모델 이름을 최신 정식 버전인 gemini-2.0-flash로 완벽하게 교체했습니다.
                          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${currentKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } })
@@ -806,5 +806,6 @@
     </script>
 </body>
 </html>
+
 
 
