@@ -2,121 +2,814 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>펄가구렌탈 - 상업용·사무용 가구 맞춤 렌탈</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Electoy Studio - AI 뮤직 스튜디오</title>
+    <!-- 필수 라이브러리: React, ReactDOM, Babel, Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #1a365d;
-            --accent-color: #d69e2e;
-            --bg-light: #f7fafc;
-            --text-color: #2d3748;
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden; 
+            height: 100vh;
+            background-color: #020617;
+            color: #e2e8f0;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
-        body { color: var(--text-color); line-height: 1.6; background-color: #fff; }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        /* 시인성 좋은 커스텀 스크롤바 */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; border: 2px solid #020617; }
         
-        /* 헤더 */
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; background: white; z-index: 100; }
-        .logo { font-size: 24px; font-weight: bold; color: var(--primary-color); text-decoration: none; }
-        nav a { margin-left: 20px; text-decoration: none; color: var(--text-color); font-weight: 550; }
-        nav a:hover { color: var(--accent-color); }
+        /* 세련된 애니메이션 효과 */
+        @keyframes rotate-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-rotate-slow { animation: rotate-slow 25s linear infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .animate-float { animation: float 5s ease-in-out infinite; }
+        @keyframes star-blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
+        .star { position: absolute; background: white; border-radius: 50%; animation: star-blink var(--duration) ease-in-out infinite; }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); } 50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.5); } }
+        .animate-pulse-glow { animation: pulse-glow 4s infinite; }
 
-        /* 히어로 배너 */
-        .hero { background: linear-gradient(rgba(26, 54, 93, 0.8), rgba(26, 54, 93, 0.8)), url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1600&q=80') center/cover; color: white; text-align: center; padding: 100px 20px; }
-        .hero h1 { font-size: 38px; margin-bottom: 20px; }
-        .hero p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
-        .btn { display: inline-block; background-color: var(--accent-color); color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold; transition: 0.2s; }
-        .btn:hover { background-color: #b7791f; }
+        .active-tab { background: #334155; color: white !important; border: 1px solid #94a3b8 !important; }
+        .modal-overlay { background: rgba(0, 0, 0, 0.96); backdrop-filter: blur(15px); z-index: 100; }
+        
+        /* 카드 컨테이너 스타일 복구 */
+        .card-container {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: all 0.2s;
+            backdrop-filter: blur(8px);
+        }
+        .card-container:hover {
+            border-color: #a855f7;
+            background: rgba(30, 41, 59, 0.9);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
 
-        /* 섹션 공통 */
-        section { padding: 80px 10%; }
-        .section-title { text-align: center; font-size: 28px; margin-bottom: 50px; color: var(--primary-color); }
+        .editable-area {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            border: 2px solid #334155;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            color: #f8fafc;
+            font-size: 1.05rem; 
+            line-height: 1.6;
+            outline: none;
+            resize: none;
+            font-weight: 500;
+        }
 
-        /* 카테고리 그리드 (칸 나누기) */
-        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-        .cat-card { background: var(--bg-light); padding: 30px; text-align: center; border-radius: 8px; border: 1px solid #e2e8f0; transition: 0.3s; }
-        .cat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
-        .cat-card h3 { margin-bottom: 10px; color: var(--primary-color); }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2em;
+        }
+        input[type="range"] { accent-color: #a855f7; }
 
-        /* 견적 폼 섹션 */
-        .quote-section { background-color: var(--bg-light); border-top: 1px solid #e2e8f0; }
-        form { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 4px; }
-        .form-group textarea { height: 120px; }
+        .persona-badge {
+            background: rgba(168, 85, 247, 0.15);
+            color: #d8b4fe;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            white-space: nowrap;
+        }
 
-        /* 푸터 */
-        footer { background: var(--primary-color); color: white; text-align: center; padding: 40px; font-size: 14px; }
+        /* 배경이 밝고 잘 보이도록 수정 */
+        .entrance-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        /* 오버레이 투명도를 낮춰서(0.3) 배경 사진이 훨씬 잘 보이게 함 */
+        .entrance-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.3); 
+            z-index: -1;
+        }
+        .entrance-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .library-item {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid #334155;
+            transition: all 0.2s;
+        }
+        .library-item:hover {
+            border-color: #a855f7;
+            background: rgba(30, 41, 59, 0.8);
+        }
+        
+        .mood-chip {
+            padding: 10px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-align: center;
+            transition: all 0.2s;
+            background: #2d2d2d;
+            color: #ffffff;
+            border: 1px solid transparent;
+        }
+        .mood-chip.selected {
+            background: #1d4ed8; 
+            box-shadow: 0 0 15px rgba(29, 78, 216, 0.4);
+        }
+
+        .inst-chip {
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            border: 2px solid #1e293b;
+            background: #0f172a;
+            color: #64748b;
+            text-align: center;
+        }
+        .inst-chip.selected {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: #a855f7;
+            color: #d8b4fe;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+        }
+
+        .api-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 2px solid transparent;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        .api-tab.active {
+            color: #a855f7;
+            border-bottom-color: #a855f7;
+            background: rgba(168, 85, 247, 0.05);
+        }
     </style>
 </head>
-<body>
+<body class="text-slate-100 flex justify-center text-left">
+    <div id="root" class="w-full max-w-md border-x border-slate-900 bg-slate-950 relative shadow-2xl overflow-hidden text-left"></div>
 
-    <!-- 헤더 칸 -->
-    <header>
-        <a href="#" class="logo">펄가구렌탈</a>
-        <nav>
-            <a href="#about">회사소개</a>
-            <a href="#categories">렌탈 카테고리</a>
-            <a href="#portfolio">납품 사례</a>
-            <a href="#quote" style="color: var(--accent-color);">견적 문의</a>
-        </nav>
-    </header>
+    <script>
+        const Icons = {
+            Music: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
+            Sparkles: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 3Z"></path></svg>`,
+            Key: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3-3.5 3.5Z"></path></svg>`,
+            Copy: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>`,
+            Check: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+            Pencil: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`,
+            Share: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>`,
+            ChevronRight: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
+            X: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+            Disc: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>`,
+            Refresh: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>`,
+            User: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
+            Save: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`,
+            Trash: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>`,
+            Library: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`,
+            AlertCircle: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+            Instrument: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`,
+            Heart: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
+            Layout: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></svg>`,
+            Tag: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
+            Globe: () => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" x2="22" y1="12" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`
+        };
 
-    <!-- 히어로 배너 칸 -->
-    <div class="hero">
-        <h1>공간의 가치를 높이는 맞춤 가구 렌탈</h1>
-        <p>사무실부터 대형 행사까지, 가장 합리적인 조건으로 프리미엄 가구를 제안합니다.</p>
-        <a href="#quote" class="btn">빠른 견적 신청하기</a>
-    </div>
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const svgStr = Icons[name] ? Icons[name]() : '';
+            return React.createElement('div', {
+                className: className,
+                style: { width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                dangerouslySetInnerHTML: { __html: svgStr.replace('width="24"', `width="${size}"`).replace('height="24"', `height="${size}"`) }
+            });
+        };
+    </script>
 
-    <!-- 카테고리 칸 (4분할) -->
-    <section id="categories">
-        <h2 class="section-title">주요 렌탈 카테고리</h2>
-        <div class="categories">
-            <div class="cat-card">
-                <h3>사무용 가구</h3>
-                <p>책상, 회의테이블, 사무용 의자 및 파티션</p>
-            </div>
-            <div class="cat-card">
-                <h3>업소 / 카페 가구</h3>
-                <p>식당 테이블, 바 체어, 원목 및 대리석 식탁</p>
-            </div>
-            <div class="cat-card">
-                <h3>행사 / 이벤트용</h3>
-                <p>접이식 의자, 천막, 대형 테이블 세트</p>
-            </div>
-            <div class="cat-card">
-                <h3>로비 / 휴게실</h3>
-                <p>라운지 소파, 인포메이션 데스크</p>
-            </div>
-        </div>
-    </section>
+    <!-- React 앱 메인 로직 -->
+    <script type="text/babel">
+        // Global definition to satisfy environment requirements
+        const apiKey = ""; 
 
-    <!-- 간편 견적 문의 칸 -->
-    <section id="quote" class="quote-section">
-        <h2 class="section-title">온라인 견적 문의</h2>
-        <form onsubmit="alert('견적 문의가 정상적으로 접수되었습니다. 확인 후 빠른 연락 드리겠습니다.'); return false;">
-            <div class="form-group">
-                <label>업체명 / 성함</label>
-                <input type="text" required placeholder="예: 펄컴퍼니 / 홍길동">
-            </div>
-            <div class="form-group">
-                <label>연락처</label>
-                <input type="tel" required placeholder="010-0000-0000">
-            </div>
-            <div class="form-group">
-                <label>희망 렌탈 품목 및 기간</label>
-                <textarea required placeholder="필요하신 가구 품목, 수량 및 대여 기간을 적어주세요."></textarea>
-            </div>
-            <button type="submit" class="btn" style="width: 100%;">견적서 요청하기</button>
-        </form>
-    </section>
+        const { useState, useEffect, useRef } = React;
 
-    <!-- 푸터 칸 -->
-    <footer>
-        <p><strong>펄가구렌탈</strong> | 대표전화: 031-000-0000 | 이메일: contact@pearlgagu.com</p>
-        <p style="margin-top: 10px; opacity: 0.7;">Copyright © Pearl Furniture Rental. All rights reserved.</p>
-    </footer>
+        const genresList = ['K-Pop', '발라드', '팝', '힙합', 'R&B', '록', 'EDM', '재즈', 'Lo-fi', '어쿠스틱', '클래식', '시티팝', '트로트', '국악', '뉴에이지', '월드뮤직'];
+        const moodsGrid = [
+            '차분한', '우울한', '외로운', '그리운',
+            '몽환적인', '희망찬', '어두운', '낭만적인',
+            '당당한', '슬픈', '감성적인', '친밀한',
+            '분위기있는', '영화같은', '활기찬', '신비로운',
+            '애틋한', '따뜻한', '차가운', '거친'
+        ];
+        const energyOptions = ['낮음', '중간', '넘침'];
+        const instrumentsList = [
+            '피아노', '어쿠스틱 기타', '일렉 기타', '신디사이저', '바이올린', '첼로', '콘트라베이스',
+            '색소폰', '트럼펫', '플루트', '클라리넷', '하프', '파이프 오르간', '하모니카', '밴조', '우쿨렐레',
+            '드럼 머신', '베이스 기타', '퍼커션', '젬베', '가야금', '거문고', '해금', '전기 피아노'
+        ];
 
+        // 연주곡 스타일 15종
+        const instrumentalSubStyles = [
+            { id: 'is_1', label: '1. 피아노 솔로', genre: '뉴에이지', moods: ['차분한', '감성적인'], inst: ['피아노'], bpm: 75 },
+            { id: 'is_2', label: '2. 로파이 칠', genre: 'Lo-fi', moods: ['몽환적인', '차분한'], inst: ['전기 피아노'], bpm: 90 },
+            { id: 'is_3', label: '3. 오케스트라', genre: '클래식', moods: ['영화같은', '신비로운'], inst: ['바이올린', '첼로'], bpm: 80 },
+            { id: 'is_4', label: '4. 어쿠스틱 기타', genre: '어쿠스틱', moods: ['따뜻한', '친밀한'], inst: ['어쿠스틱 기타'], bpm: 95 },
+            { id: 'is_5', label: '5. 재즈 쿼텟', genre: '재즈', moods: ['분위기있는', '차가운'], inst: ['색소폰', '콘트라베이스'], bpm: 110 },
+            { id: 'is_6', label: '6. 국악 앙상블', genre: '국악', moods: ['그리운', '신비로운'], inst: ['가야금', '해금'], bpm: 85 },
+            { id: 'is_7', label: '7. 앰비언트', genre: '뉴에이지', moods: ['신비로운', '몽환적인'], inst: ['신디사이저'], bpm: 60 },
+            { id: 'is_8', label: '8. 타악 리듬', genre: '월드뮤직', moods: ['거친', '활기찬'], inst: ['젬베', '퍼커션'], bpm: 125 },
+            { id: 'is_9', label: '9. 신스웨이브', genre: 'EDM', moods: ['분위기있는', '활기찬'], inst: ['신디사이저'], bpm: 120 },
+            { id: 'is_10', label: '10. 펑키 베이스', genre: 'R&B', moods: ['당당한', '활기찬'], inst: ['베이스 기타', '드럼 머신'], bpm: 115 },
+            { id: 'is_11', label: '11. 스페니시 기타', genre: '월드뮤직', moods: ['낭만적인', '거친'], inst: ['어쿠스틱 기타'], bpm: 105 },
+            { id: 'is_12', label: '12. 챔버 클래식', genre: '클래식', moods: ['차분한', '친밀한'], inst: ['바이올린', '하프'], bpm: 70 },
+            { id: 'is_13', label: '13. 다크 테크노', genre: 'EDM', moods: ['어두운', '거친'], inst: ['드럼 머신', '신디사이저'], bpm: 135 },
+            { id: 'is_14', label: '14. 시네마틱 서스펜스', genre: '발라드', moods: ['신비로운', '영화같은'], inst: ['첼로', '신디사이저'], bpm: 65 },
+            { id: 'is_15', label: '15. 힐링 명상음악', genre: '뉴에이지', moods: ['차분한', '희망찬'], inst: ['하프', '피아노'], bpm: 50 }
+        ];
+
+        const App = () => {
+            const [isEntered, setIsEntered] = useState(false);
+            const [geminiKey, setGeminiKey] = useState('');
+            const [gptKey, setGptKey] = useState('');
+            const [apiProvider, setApiProvider] = useState('gemini'); 
+            const [title, setTitle] = useState('');
+            const [persona, setPersona] = useState({ name: '새 프로필', gender: '여성', age: '20대', tone: '맑고 깨끗한', style: '감성적인', voiceId: '' });
+            const [selectedGenres, setSelectedGenres] = useState(['K-Pop']);
+            const [selectedMoods, setSelectedMoods] = useState(['몽환적인']);
+            const [energy, setEnergy] = useState('중간');
+            const [bpm, setBpm] = useState(120);
+            const [duration, setDuration] = useState(120);
+            const [selectedInstruments, setSelectedInstruments] = useState(['신디사이저']);
+            const [instrument, setInstrument] = useState('설정 안 함');
+            const [prompt, setPrompt] = useState('');
+            const [showApiModal, setShowApiModal] = useState(false);
+            const [showPersonaModal, setShowPersonaModal] = useState(false);
+            const [showMoodModal, setShowMoodModal] = useState(false);
+            const [showInstModal, setShowInstModal] = useState(false);
+            const [showClearConfirm, setShowClearConfirm] = useState(false);
+            const [toast, setToast] = useState({ show: false, message: '' });
+            const [generatingType, setGeneratingType] = useState(null); 
+            const [activeThemeTab, setActiveThemeTab] = useState('인기 장르');
+            const [editableStyle, setEditableStyle] = useState('');
+            const [editableLyrics, setEditableLyrics] = useState('');
+            const [hasResult, setHasResult] = useState(false);
+            const [copyStatus, setCopyStatus] = useState({ lyrics: false, style: false });
+            const [library, setLibrary] = useState([]);
+
+            const isInstrumental = persona.gender === '연주곡 (Instrumental)';
+
+            const themes = [
+                { category: '인기 장르', items: [
+                    { id: 'p_kpop', label: '🎤 K-POP / 댄스', genre: 'K-Pop', moods: ['활기찬', '당당한'], inst: ['신디사이저'], gender: '여성', bpm: 128 },
+                    { id: 'p_ballad', label: '🎹 감성 발라드', genre: '발라드', moods: ['감성적인', '슬픈'], inst: ['피아노', '현악기'], gender: '남성', bpm: 68 },
+                    { id: 'p_band', label: '🎸 청량 밴드', genre: '록', moods: ['희망찬', '활기찬'], inst: ['일렉 기타', '드럼 머신'], gender: '남녀 듀엣', bpm: 132 },
+                    { id: 'p_citypop', label: '🌃 시티팝 / 레트로', genre: '시티팝', moods: ['몽환적인', '그리운'], inst: ['베이스 기타', '신디사이저'], gender: '여성', bpm: 115 },
+                    { id: 'p_rnb', label: '🧢 R&B / 힙합', genre: 'R&B', moods: ['분위기있는', '친밀한'], inst: ['드럼 머신', '전기 피아노'], gender: '남성', bpm: 90 },
+                    { id: 'p_jpop', label: '⚡ J-POP / 애니', genre: 'J-Pop', moods: ['활기찬', '신비로운'], inst: ['일렉 기타', '피아노'], gender: '여성', bpm: 160 },
+                    { id: 'p_acoustic', label: '☕ 어쿠스틱 / 인디', genre: '어쿠스틱', moods: ['따뜻한', '차분한'], inst: ['어쿠스틱 기타'], gender: '여성', bpm: 85 },
+                    { id: 'p_lofi', label: '🌙 로파이 / 힐링', genre: 'Lo-fi', moods: ['차분한', '몽환적인'], inst: ['전기 피아노'], gender: '연주곡 (Instrumental)', bpm: 80 }
+                ]},
+                { category: '발라드', items: [
+                    { id: 'b_bye', label: '💔 이별·그리움', genre: '발라드', moods: ['슬픈', '외로운'], inst: ['피아노'], gender: '여성', bpm: 68 },
+                    { id: 'b_love', label: '💕 사랑·설렘', genre: '발라드', moods: ['낭만적인', '희망찬'], inst: ['피아노'], gender: '남녀 듀엣', bpm: 76 },
+                    { id: 'b_sad_tear', label: '🌧️ 슬픔·눈물', genre: '발라드', moods: ['슬픈', '우울한'], inst: ['첼로'], gender: '여성', bpm: 62 },
+                    { id: 'b_heal', label: '🌿 위로·힐링', genre: '발라드', moods: ['따뜻한', '차분한'], inst: ['어쿠스틱 기타'], gender: '남성', bpm: 80 },
+                    { id: 'b_night', label: '🌙 밤 감성', genre: '발라드', moods: ['몽환적인', '친밀한'], inst: ['전기 피아노'], gender: '여성', bpm: 70 },
+                    { id: 'b_ost_emo', label: '🎬 OST 감성', genre: '발라드', moods: ['영화같은', '감성적인'], inst: ['바이올린'], gender: '여성', bpm: 74 },
+                    { id: 'b_high', label: '🔥 고음·폭발', genre: '발라드', moods: ['당당한', '감성적인'], inst: ['일렉 기타'], gender: '남성', bpm: 72 },
+                    { id: 'b_aco', label: '🎸 어쿠스틱·감성', genre: '어쿠스틱', moods: ['따뜻한', '그리운'], inst: ['어쿠스틱 기타'], gender: '여성', bpm: 82 }
+                ]},
+                { category: '댄스/일렉', items: [
+                    { id: 'd_kpop', label: '🎤 K-POP 댄스', genre: 'K-Pop', moods: ['활기찬', '당당한'], inst: ['신디사이저'], gender: '여성', bpm: 128 },
+                    { id: 'd_edm', label: '🔥 EDM 페스티벌', genre: 'EDM', moods: ['활기찬', '당당한'], inst: ['신디사이저'], gender: '남성', bpm: 132 },
+                    { id: 'd_hou', label: '🎧 하우스', genre: 'EDM', moods: ['분위기있는', '신비로운'], inst: ['베이스 기타'], gender: '여성', bpm: 124 },
+                    { id: 'd_tec', label: '🖤 테크노', genre: 'EDM', moods: ['어두운', '거친'], inst: ['드럼 머신'], gender: '남성', bpm: 135 },
+                    { id: 'd_tra', label: '🌌 트랜스', genre: 'EDM', moods: ['몽환적인', '활기찬'], inst: ['신디사이저'], gender: '남성', bpm: 140 },
+                    { id: 'd_pop', label: '🕺 댄스 팝', genre: '팝', moods: ['희망찬', '낭만적인'], inst: ['신디사이저'], gender: '여성', bpm: 120 },
+                    { id: 'd_electro', label: '⚡ 일렉트로 팝', genre: '팝', moods: ['활기찬', '당당한'], inst: ['신디사이저'], gender: '여성', bpm: 122 },
+                    { id: 'd_disco', label: '✨ 디스코/펑크', genre: 'EDM', moods: ['활기찬', '따뜻한'], inst: ['베이스 기타'], gender: '남녀 듀엣', bpm: 118 }
+                ]},
+                { category: '전통가요', items: [
+                    { id: 't_pure', label: '🎙️ 정통 트롯', genre: '트로트', moods: ['그리운', '감성적인'], inst: ['색소폰'], gender: '여성', bpm: 135 },
+                    { id: 't_semi', label: '💃 세미 트롯', genre: '트로트', moods: ['활기찬', '희망찬'], inst: ['피아노'], gender: '여성', bpm: 130 },
+                    { id: 't_new', label: '✨ 신세대 트롯', genre: '트로트', moods: ['당당한', '활기찬'], inst: ['신디사이저'], gender: '여성', bpm: 140 },
+                    { id: 't_fus', label: '🎎 퓨전 트롯', genre: '국악', moods: ['영화같은', '감성적인'], inst: ['가야금'], gender: '여성', bpm: 110 },
+                    { id: 't_dan', label: '🕺 댄스 트롯', genre: '트로트', moods: ['활기찬', '당당한'], inst: ['드럼 머신'], gender: '남성', bpm: 142 },
+                    { id: 't_bal', label: '💔 발라드 트롯', genre: '발라드', moods: ['슬픈', '감성적인'], inst: ['바이올린'], gender: '여성', bpm: 70 },
+                    { id: 't_soul', label: '🎷 소울 트롯', genre: '트로트', moods: ['분위기있는', '따뜻한'], inst: ['색소폰'], gender: '남성', bpm: 128 },
+                    { id: 't_folk', label: '🎋 포크 트롯', genre: '어쿠스틱', moods: ['그리운', '따뜻한'], inst: ['어쿠스틱 기타'], gender: '여성', bpm: 120 }
+                ]},
+                { category: '록/얼터너티브', items: [
+                    { id: 'r_hard', label: '🤘 하드 록', genre: '록', moods: ['당당한', '어두운'], inst: ['일렉 기타'], gender: '남성', bpm: 130 },
+                    { id: 'r_punk', label: '⚡ 펑크 록', genre: '록', moods: ['활기찬', '거친'], inst: ['일렉 기타'], gender: '남성', bpm: 160 },
+                    { id: 'r_metal', label: '🎸 헤비 메탈', genre: '록', moods: ['어두운', '당당한'], inst: ['일렉 기타'], gender: '남성', bpm: 140 },
+                    { id: 'r_indie', label: '🎹 인디 록', genre: '록', moods: ['분위기있는', '몽환적인'], inst: ['어쿠스틱 기타'], gender: '여성', bpm: 120 },
+                    { id: 'r_brit', label: '🇬🇧 브릿 팝', genre: '록', moods: ['희망찬', '그리운'], inst: ['일렉 기타'], gender: '남성', bpm: 115 },
+                    { id: 'r_garage', label: '🚗 가라지 록', genre: '록', moods: ['거친', '어두운'], inst: ['일렉 기타'], gender: '남성', bpm: 135 },
+                    { id: 'r_grunge', label: '🧥 그런지 록', genre: '록', moods: ['우울한', '거친'], inst: ['일렉 기타'], gender: '남성', bpm: 100 },
+                    { id: 'r_classic', label: '📻 클래식 록', genre: '록', moods: ['당당한', '따뜻한'], inst: ['일렉 기타'], gender: '남성', bpm: 120 }
+                ]},
+                { category: '퓨전/실험', items: [
+                    { id: 'f_acid', label: '🎷 애시드 재즈', genre: '재즈', moods: ['분위기있는', '따뜻한'], inst: ['색소폰'], gender: '연주곡 (Instrumental)', bpm: 115 },
+                    { id: 'f_synth', label: '🎹 신스 팝', genre: '팝', moods: ['몽환적인', '희망찬'], inst: ['신디사이저'], gender: '여성', bpm: 120 },
+                    { id: 'f_raga', label: '라가 브레이크', genre: '월드뮤직', moods: ['신비로운', '분위기있는'], inst: ['신디사이저'], gender: '연주곡 (Instrumental)', bpm: 130 },
+                    { id: 'f_hyphy', label: '하이피 R&B', genre: '힙합', moods: ['활기찬', '당당한'], inst: ['드럼 머신'], gender: '남성', bpm: 105 },
+                    { id: 'f_alt_rnb', label: '얼터너티브 R&B', genre: 'R&B', moods: ['분위기있는', '몽환적인'], inst: ['전기 피아노'], gender: '여성', bpm: 90 },
+                    { id: 'f_acoustic_trance', label: '어쿠스틱 트랜스', genre: '어쿠스틱', moods: ['몽환적인', '차분한'], inst: ['어쿠스틱 기타'], gender: '연주곡 (Instrumental)', bpm: 110 },
+                    { id: 'f_gfunk', label: '지펑크 EDM', genre: '힙합', moods: ['당당한', '따뜻한'], inst: ['베이스 기타'], gender: '남성', bpm: 100 },
+                    { id: 'f_psych', label: '사이키델릭 하우스', genre: 'EDM', moods: ['신비로운', '몽환적인'], inst: ['신디사이저'], gender: '여성', bpm: 124 }
+                ]}
+            ];
+
+            const entranceImageUrl = "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=1920";
+
+            useEffect(() => {
+                const savedData = localStorage.getItem('electoy-studio-config-v14');
+                if (savedData) {
+                    try {
+                        const parsed = JSON.parse(savedData);
+                        if (parsed.geminiKey) setGeminiKey(parsed.geminiKey);
+                        if (parsed.gptKey) setGptKey(parsed.gptKey);
+                        if (parsed.apiProvider) setApiProvider(parsed.apiProvider);
+                        if (parsed.persona) setPersona(parsed.persona);
+                        if (parsed.library) setLibrary(parsed.library);
+                        if (parsed.selectedInstruments) setSelectedInstruments(parsed.selectedInstruments);
+                        if (parsed.selectedMoods) setSelectedMoods(parsed.selectedMoods);
+                    } catch (e) {}
+                }
+            }, []);
+
+            useEffect(() => {
+                const configToSave = { geminiKey, gptKey, apiProvider, persona, library, selectedInstruments, selectedMoods };
+                localStorage.setItem('electoy-studio-config-v14', JSON.stringify(configToSave));
+            }, [geminiKey, gptKey, apiProvider, persona, library, selectedInstruments, selectedMoods]);
+
+            const showToast = (msg) => {
+                setToast({ show: true, message: msg });
+                setTimeout(() => setToast({ show: false, message: '' }), 4000);
+            };
+
+            const toggleInstrument = (inst) => {
+                if (selectedInstruments.includes(inst)) {
+                    setSelectedInstruments(prev => prev.filter(i => i !== inst));
+                } else if (selectedInstruments.length < 5) {
+                    setSelectedInstruments(prev => [...prev, inst]);
+                } else {
+                    showToast("악기는 최대 5개까지 선택 가능합니다.");
+                }
+            };
+
+            const toggleMood = (mood) => {
+                if (selectedMoods.includes(mood)) {
+                    setSelectedMoods(prev => prev.filter(m => m !== mood));
+                } else if (selectedMoods.length < 4) {
+                    setSelectedMoods(prev => [...prev, mood]);
+                } else {
+                    showToast("무드는 최대 4개까지 선택 가능합니다.");
+                }
+            };
+            
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const handleSaveToLibrary = () => {
+                if (!editableStyle) { showToast("먼저 곡을 생성해 주세요!"); return; }
+                if (!isInstrumental && !editableLyrics) { showToast("먼저 곡을 생성해 주세요!"); return; }
+                
+                const newProject = { 
+                    id: Date.now(), 
+                    title: title || "무제 프로젝트", 
+                    lyrics: isInstrumental ? "[(Instrumental Track)]" : editableLyrics, 
+                    style: editableStyle, 
+                    date: new Date().toLocaleDateString() 
+                };
+                setLibrary(prev => [newProject, ...prev]);
+                showToast("보관함에 저장되었습니다!");
+            };
+
+            const deleteLibraryItem = (id, e) => { e.stopPropagation(); setLibrary(prev => prev.filter(item => item.id !== id)); showToast("삭제되었습니다."); };
+            const clearAllLibrary = () => { setLibrary([]); setShowClearConfirm(false); showToast("보관함을 모두 비웠습니다."); };
+            const loadLibraryItem = (item) => { setTitle(item.title); setEditableLyrics(item.lyrics); setEditableStyle(item.style); setHasResult(true); showToast(`'${item.title}' 작업을 불러왔습니다.`); };
+
+            const handleGenerate = async (lang = 'ko') => {
+                const currentGeminiKey = geminiKey ? geminiKey.trim() : '';
+                const currentGptKey = gptKey ? gptKey.trim() : '';
+                const currentKey = apiProvider === 'gemini' ? currentGeminiKey : currentGptKey;
+                
+                if (!currentKey) { 
+                    showToast(apiProvider === 'gemini' ? "Gemini API 키를 먼저 입력해주세요!" : "GPT API 키를 먼저 입력해주세요!");
+                    setShowApiModal(true); 
+                    return; 
+                }
+                
+                setGeneratingType(lang); setHasResult(false);
+                
+                try {
+                    let systemPrompt = '';
+                    if (isInstrumental) {
+                        systemPrompt = lang === 'en'
+                            ? `Master Composer. Generate a highly detailed 'style_prompt' for Suno AI in English based on the user's idea. The track is Instrumental, so NO lyrics. [CRITICAL: style_prompt strictly limited to under 800 characters]. JSON: {"style_prompt": "string", "lyrics": ""}`
+                            : `마스터 작곡가. 연주곡(Instrumental) 모드. 가사는 비워두고, 'style_prompt'는 무조건 영어(English)로 작성. [치명적 규칙: style_prompt는 공백 포함 800자 이내로 엄격히 제한]. JSON: {"style_prompt": "string", "lyrics": ""}`;
+                    } else {
+                        systemPrompt = lang === 'en'
+                            ? `Master Composer. BOTH lyrics and style_prompt in English. [CRITICAL 1: Include Structure tags (e.g., [Verse])]. [CRITICAL 2: Chords MUST be placed at the very beginning of the exact same line as the lyrics (e.g., "(Am7) Words of the song here"). NEVER place chords on a new line by themselves or at the end]. [CRITICAL 3: style_prompt strictly limited to under 800 characters]. JSON: {"style_prompt": "string", "lyrics": "string"}`
+                            : `마스터 작곡가. 가사는 한국어, 'style_prompt'는 무조건 매우 긴 영어(English) 태그로만 작성. [치명적 규칙 1: 가사 작성 시 곡 구조([Verse], [Chorus])를 괄호로 포함할 것]. [치명적 규칙 2: 모든 코드는 반드시 가사가 시작되기 바로 앞, 해당 줄의 맨 왼쪽 처음에 괄호로 묶어 작성할 것 (예: "(Cmaj7) 너무나 많은 추억들이 아프게 남아"). 절대 코드를 다음 줄에 따로 쓰거나 가사 맨 뒤에 쓰지 마시오]. [치명적 규칙 3: style_prompt는 공백 포함 800자 이내로 엄격히 제한]. JSON: {"style_prompt": "string", "lyrics": "string"}`;
+                    }
+                    
+                    const instString = selectedInstruments.join(', ');
+                    const moodString = selectedMoods.join(', ');
+                    const userQuery = `제목: ${title}, 장르: ${selectedGenres.join(',')}, 무드: ${moodString}, 에너지레벨: ${energy}, 영감: ${prompt}, 페르소나: ${JSON.stringify(persona)}, 사용 악기: ${instString}, BPM: ${bpm}`;
+
+                    let resultText = "";
+                    let response;
+                    
+                    if (apiProvider === 'gemini') {
+                         console.log("🚀 현재 실행 중인 모델: gemini-2.5-flash");
+                         // 최신 정식 버전인 gemini-2.5-flash로 완전히 교체했습니다.
+                         response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentKey}`, {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                contents: [{ parts: [{ text: userQuery }] }], 
+                                systemInstruction: { parts: [{ text: systemPrompt }] }, 
+                                generationConfig: { responseMimeType: "application/json" } 
+                            })
+                        });
+                         
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            console.error("Google API 원본 에러:", errData);
+                            // 구글이 토해낸 진짜 에러 메시지를 숨기지 않고 무조건 보여줍니다.
+                            throw new Error(`[구글API 에러] ${errData?.error?.message || response.status}`);
+                        }
+                        const data = await response.json();
+                        resultText = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) ? data.candidates[0].content.parts[0].text : "";
+                    } else {
+                        response = await fetch('https://api.openai.com/v1/chat/completions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentKey}` },
+                            body: JSON.stringify({
+                                model: "gpt-4o",
+                                messages: [{role: "system", content: systemPrompt}, {role: "user", content: userQuery}],
+                                response_format: { type: "json_object" }
+                            })
+                        });
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            throw new Error((errData && errData.error && errData.error.message) || `API Error: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        resultText = (data.choices && data.choices[0] && data.choices[0].message) ? data.choices[0].message.content : "";
+                    }
+
+                    if (resultText) {
+                        const cleanedText = resultText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                        let parsed;
+                        try {
+                            parsed = JSON.parse(cleanedText);
+                        } catch (parseErr) {
+                            console.error("JSON Parsing Error:", cleanedText);
+                            throw new Error("AI가 올바른 형식을 만들지 못했습니다. 다시 시도해주세요.");
+                        }
+                        setEditableStyle(parsed.style_prompt || ""); 
+                        setEditableLyrics(isInstrumental ? "" : (parsed.lyrics || "")); 
+                        setHasResult(true);
+                        showToast("생성이 완료되었습니다!");
+                    } else {
+                        throw new Error("결과값이 비어있습니다.");
+                    }
+                } catch (e) { 
+                    let errorMsg = e.message;
+                    if (errorMsg.indexOf('API key not valid') !== -1 || errorMsg.indexOf('400') !== -1) {
+                        showToast('API 키가 올바르지 않습니다. 새로 발급받은 키를 빈칸 없이 정확히 넣어주세요.');
+                    } else if (errorMsg.indexOf('401') !== -1 || errorMsg.indexOf('403') !== -1 || errorMsg.indexOf('Incorrect API key') !== -1) {
+                        showToast('권한 오류: API 키가 만료되었거나 현재 사용할 수 없는 상태입니다. (새 키 발급 권장)');
+                    } else {
+                        showToast(`생성 실패: ${errorMsg}`);
+                    }
+                    console.error("Generation Error:", e); 
+                } finally { 
+                    setGeneratingType(null); 
+                }
+            };
+
+            const copyToClipboard = (text, type) => {
+                const textArea = document.createElement("textarea"); textArea.value = text; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea);
+                setCopyStatus(prev => ({ ...prev, [type]: true })); setTimeout(() => setCopyStatus(prev => ({ ...prev, [type]: false })), 2000);
+            };
+
+            const activeKey = apiProvider === 'gemini' ? (geminiKey ? geminiKey.trim() : '') : (gptKey ? gptKey.trim() : '');
+
+            let currentThemeCategory = themes.find(t => t.category === activeThemeTab);
+            if (!currentThemeCategory) { currentThemeCategory = { items: [] }; }
+
+            return (
+                <div className="app-container text-slate-200 bg-slate-950 text-left">
+                    
+                    {/* 입장 화면 */}
+                    <div className={`entrance-overlay ${isEntered ? 'hidden' : ''}`} style={{ backgroundImage: `url(${entranceImageUrl})` }}>
+                        <div className="relative flex flex-col items-center space-y-12 text-center px-10 animate-in fade-in zoom-in duration-1000">
+                            <div className="space-y-4">
+                                <h1 className="text-7xl font-black text-white uppercase tracking-tighter drop-shadow-lg text-left">Electoy Studio</h1>
+                                <p className="text-slate-200 text-lg font-bold tracking-[0.4em] uppercase opacity-80 text-left">AI Master Music Production</p>
+                            </div>
+                            <button onClick={() => setIsEntered(true)} className="px-24 py-8 bg-purple-600 rounded-full font-black text-2xl text-white shadow-2xl active:scale-95 transition-all flex items-center gap-5 animate-pulse-glow uppercase tracking-widest text-left">START PRODUCTION</button>
+                        </div>
+                        <div className="absolute bottom-10 text-white/40 font-black text-xs uppercase tracking-[0.6em] text-left">Electoy Studio • Master v14.7</div>
+                    </div>
+
+                    <header className="shrink-0 bg-slate-900/90 backdrop-blur-md border-b-2 border-slate-800 p-6 flex items-center justify-between sticky top-0 z-50">
+                        <div className="flex items-center gap-4 text-left"><div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg text-white"><Icon name="Music" size={24} /></div><h1 className="font-black text-2xl uppercase tracking-tight text-white">Electoy Studio</h1></div>
+                        <div className="flex items-center gap-3 text-left"><button onClick={() => showToast("주소 복사됨!")} className="p-4 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-inner text-left"><Icon name="Share" size={24} /></button><button onClick={() => setShowApiModal(true)} className={`p-4 rounded-xl border border-slate-700 ${activeKey !== '' ? 'text-green-400 bg-green-900/20' : 'text-slate-400 bg-slate-800'} text-left`}><Icon name="Key" size={24} /></button></div>
+                    </header>
+                    <main className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-12 pb-56 text-left">
+                        {toast.show && <div className="fixed top-28 left-1/2 -translate-x-1/2 z-[200] px-10 py-5 bg-slate-800 border border-slate-600 text-white font-black text-xl rounded-full shadow-2xl animate-bounce text-center">{toast.message}</div>}
+                        
+                        <section className="space-y-4 text-left"><label className="text-sm font-bold text-slate-400 uppercase tracking-widest ml-2 text-left">Project Title</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목을 입력하세요..." className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-8 py-5 text-2xl font-bold outline-none focus:border-slate-500 transition-all text-white text-left" /></section>
+                        
+                        <section className="space-y-6 text-left">
+                            <label className="text-sm font-bold text-slate-400 uppercase ml-2 flex items-center gap-4 text-left"><Icon name="Sparkles" size={20} /> 스타일 프리셋</label>
+                            <div className="flex flex-wrap gap-2 text-left">
+                                {themes.map(cat => (
+                                    <button key={cat.category} onClick={() => setActiveThemeTab(cat.category)} className={`px-5 py-3 text-sm font-bold rounded-lg transition-all ${activeThemeTab === cat.category ? 'active-tab' : 'bg-slate-900 text-slate-400 border border-slate-700 hover:bg-slate-800'}`}>{cat.category}</button>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+                                {currentThemeCategory.items.map(item => (
+                                    <button key={item.id} onClick={() => { setSelectedGenres([item.genre]); setSelectedMoods(item.moods); setSelectedInstruments(item.inst); setPersona(p => ({...p, gender: item.gender})); setBpm(item.bpm); showToast(`'${item.label}' 적용!`); }} className="card-container text-base font-bold text-slate-300 hover:border-slate-500 hover:text-white transition-all active:scale-95 text-left leading-tight h-full">{item.label}</button>
+                                ))}
+                            </div>
+                        </section>
+
+                        <section className="card-container space-y-10 text-left">
+                            <div className="flex justify-between items-center text-left"><label className="text-xl font-black text-slate-300 uppercase tracking-widest text-left"><Icon name="Key" size={20}/> 상세 설정</label><button onClick={() => { const newGender = isInstrumental ? '여성' : '연주곡 (Instrumental)'; setPersona(prev => ({ ...prev, gender: newGender })); showToast(newGender === '여성' ? "보컬 모드로 전환" : "연주곡 모드 ON"); }} className={`px-8 py-4 rounded-xl text-lg font-bold transition-all border ${isInstrumental ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-900 text-slate-500 border-slate-700'}`}>연주곡 모드 {isInstrumental ? 'ON' : 'OFF'}</button></div>
+                            {isInstrumental && (
+                                <div className="grid grid-cols-2 gap-4 pb-4 animate-in zoom-in-95 text-left">
+                                    {instrumentalSubStyles.map(s => (
+                                        <button key={s.id} onClick={() => { setSelectedGenres([s.genre]); setSelectedMoods(s.moods); setSelectedInstruments(s.inst); setBpm(s.bpm); showToast(`'${s.label}' 적용!`); }} className="p-5 bg-slate-900 border border-slate-700 rounded-2xl text-lg font-bold text-slate-300 text-left hover:border-slate-500 hover:text-white transition-all shadow-lg">{s.label}</button>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className={`grid ${!isInstrumental ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-8 text-left`}>
+                                {/* Hide Vocal Persona card entirely when Instrumental mode is ON */}
+                                {!isInstrumental && (
+                                    <button onClick={() => setShowPersonaModal(true)} className="card-container text-left hover:border-slate-500 active:scale-95 transition-all min-h-[160px]">
+                                        <div className="text-xs text-slate-400 font-bold mb-4 uppercase tracking-widest flex items-center gap-2 text-left"><Icon name="User" size={16}/> 보컬 페르소나</div>
+                                        <div className="space-y-2 mb-4 text-left">
+                                            <div className="flex flex-wrap gap-2 text-left"><span className="persona-badge text-left">{persona.name}</span><span className="persona-badge text-left">{persona.gender}</span><span className="persona-badge text-left">{persona.age}</span></div>
+                                            <div className="text-lg text-slate-200 font-bold leading-snug text-left">{persona.tone} / {persona.style}</div>
+                                        </div>
+                                    </button>
+                                )}
+                                <div className="grid grid-cols-2 gap-6 text-left">
+                                    <button onClick={() => setShowMoodModal(true)} className="card-container text-left hover:border-slate-500 active:scale-95 transition-all text-left">
+                                        <div className="text-xs text-slate-400 font-bold mb-4 uppercase tracking-widest flex items-center gap-2 text-left"><Icon name="Heart" size={16}/> 분위기</div>
+                                        <div className="flex flex-wrap gap-2 text-left">
+                                            {selectedMoods.slice(0, 2).map(m => <span key={m} className="persona-badge text-left">{m}</span>)}
+                                            {selectedMoods.length > 2 && <span className="persona-badge text-left">+{selectedMoods.length-2}</span>}
+                                        </div>
+                                    </button>
+
+                                    <button onClick={() => setShowInstModal(true)} className="card-container text-left hover:border-slate-500 active:scale-95 transition-all text-left">
+                                        <div className="text-xs text-slate-400 font-bold mb-4 uppercase tracking-widest flex items-center gap-2 text-left"><Icon name="Layout" size={16}/> 악기 구성</div>
+                                        <div className="flex flex-wrap gap-2 text-left">
+                                            {selectedInstruments.slice(0, 2).map(i => <span key={i} className="persona-badge text-left">{i}</span>)}
+                                            {selectedInstruments.length > 2 && <span className="persona-badge text-left">+{selectedInstruments.length-2}</span>}
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-800 text-left">
+                                <div className="space-y-4 text-left">
+                                    <div className="flex justify-between text-sm font-bold text-slate-400 uppercase tracking-widest text-left"><span>BPM (속도)</span><span className="text-white text-xl font-mono text-left">{bpm}</span></div>
+                                    <input type="range" min="40" max="200" step="10" value={bpm} onChange={(e) => setBpm(parseInt(e.target.value))} className="w-full h-2 cursor-pointer rounded-lg appearance-none bg-slate-800 text-left" />
+                                </div>
+                                <div className="space-y-4 text-left">
+                                    <div className="flex justify-between text-sm font-bold text-slate-400 uppercase tracking-widest text-left"><span>곡 길이 (Duration)</span><span className="text-white text-xl font-mono text-left">{formatTime(duration)}</span></div>
+                                    <input type="range" min="30" max="360" step="10" value={duration} onChange={(e) => setDuration(parseInt(e.target.value))} className="w-full h-2 cursor-pointer rounded-lg appearance-none bg-slate-800 text-left" />
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="space-y-8 text-left"><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="음악적 아이디어를 자유롭게 적어보세요..." className="w-full bg-slate-900 border border-slate-700 rounded-[3rem] p-10 h-80 text-2xl font-bold outline-none focus:border-slate-500 transition-all text-white shadow-inner leading-relaxed text-left" /><div className="grid grid-cols-2 gap-8 text-white text-left">
+                            <button type="button" onClick={() => handleGenerate('ko')} disabled={generatingType !== null} className={`py-8 rounded-[2.5rem] font-black text-2xl shadow-xl flex items-center justify-center gap-4 transition-all text-center border ${generatingType !== null ? 'bg-slate-800 border-slate-600 text-slate-500 opacity-70 cursor-not-allowed' : 'bg-slate-800 border-slate-600 text-white hover:bg-slate-700 active:scale-95'}`}>
+                                {generatingType === 'ko' ? <Icon name="Refresh" className="animate-spin text-purple-400" size={28} /> : <Icon name="Sparkles" size={28} />} 생성
+                            </button>
+                            <button type="button" onClick={() => handleGenerate('en')} disabled={generatingType !== null} className={`py-8 rounded-[2.5rem] font-black text-2xl shadow-xl flex items-center justify-center gap-4 transition-all text-center border ${generatingType !== null ? 'bg-slate-800 border-slate-600 text-slate-500 opacity-70 cursor-not-allowed' : 'bg-slate-800 border-slate-600 text-white hover:bg-slate-700 active:scale-95'}`}>
+                                {generatingType === 'en' ? <Icon name="Refresh" className="animate-spin text-blue-400" size={28} /> : <Icon name="Globe" size={28} />} ENGLISH
+                            </button>
+                        </div></section>
+
+                        <section className="pt-24 border-t border-slate-800 space-y-16 text-left">
+                            {hasResult && (
+                                <div className="space-y-20 animate-in slide-in-from-bottom-10 duration-700 text-left">
+                                    
+                                    {/* Lyrics Section: Only show if NOT instrumental */}
+                                    {!isInstrumental && (
+                                        <div className="card-container text-left">
+                                            <div className="flex justify-between items-center mb-10 text-left">
+                                                <span className="text-2xl font-black text-slate-200 uppercase tracking-widest text-left">생성된 결과 (Results)</span>
+                                                <div className="flex items-center gap-4 text-left">
+                                                    <button onClick={handleSaveToLibrary} className="px-6 py-4 bg-slate-800 border border-slate-600 rounded-[2rem] shadow-lg active:scale-90 flex items-center gap-3 font-bold text-lg hover:bg-slate-700 text-left"><Icon name="Save" size={24} /> 저장</button>
+                                                    <button onClick={() => copyToClipboard(editableLyrics, 'lyrics')} className="p-4 bg-slate-800 border border-slate-600 rounded-[2rem] shadow-lg active:scale-90 hover:bg-slate-700 text-left">{copyStatus.lyrics ? <Icon name="Check" size={28} className="text-green-400" /> : <Icon name="Copy" size={28} />}</button>
+                                                </div>
+                                            </div>
+                                            <textarea className="editable-area h-[800px] text-left" value={editableLyrics} onChange={(e) => setEditableLyrics(e.target.value)} />
+                                        </div>
+                                    )}
+
+                                    <div className="card-container text-left">
+                                        <div className="flex justify-between items-center mb-10 text-left">
+                                            <span className="text-2xl font-black text-slate-200 uppercase tracking-widest text-left">스타일 태그</span>
+                                            <div className="flex items-center gap-4">
+                                                {isInstrumental && (
+                                                    <button onClick={handleSaveToLibrary} className="px-6 py-4 bg-slate-800 border border-slate-600 rounded-[2rem] shadow-lg active:scale-90 flex items-center gap-3 font-bold text-lg hover:bg-slate-700 text-left"><Icon name="Save" size={24} /> 저장</button>
+                                                )}
+                                                <button onClick={() => copyToClipboard(editableStyle, 'style')} className="p-4 bg-slate-800 border border-slate-600 rounded-[2rem] shadow-lg active:scale-90 hover:bg-slate-700 text-left">{copyStatus.style ? <Icon name="Check" size={28} className="text-green-400" /> : <Icon name="Copy" size={28} />}</button>
+                                            </div>
+                                        </div>
+                                        <textarea className="editable-area h-64 font-mono text-slate-300 shadow-inner font-bold text-left" value={editableStyle} onChange={(e) => setEditableStyle(e.target.value)} />
+                                    </div>
+                                </div>
+                            )}
+
+                            <section className="space-y-8 pt-20 border-t border-slate-800 text-left">
+                                <div className="flex justify-between items-center px-4 text-left">
+                                    <div className="flex items-center gap-4 text-slate-500 text-left"><Icon name="Library" size={28} /><h2 className="text-2xl font-black uppercase tracking-widest text-left">My Library</h2></div>
+                                    {library.length > 0 && (<button onClick={() => setShowClearConfirm(true)} className="text-xs font-bold text-red-400 hover:text-red-300 border border-red-500/20 px-4 py-2 rounded-lg transition-all text-left">전체 비우기</button>)}
+                                </div>
+                                {library.length === 0 ? (<div className="p-20 border border-dashed border-slate-700 rounded-[3rem] text-center text-slate-600 font-bold text-left">저장된 작업이 없습니다.</div>) : (
+                                    <div className="space-y-4 text-left">
+                                        {library.map(item => (
+                                            <div key={item.id} onClick={() => loadLibraryItem(item)} className="library-item p-8 rounded-[2rem] flex justify-between items-center cursor-pointer group animate-in slide-in-from-left-5 text-left">
+                                                <div className="space-y-2 text-left"> <div className="text-xl font-black text-slate-200 group-hover:text-purple-400 transition-all text-left">{item.title}</div> <div className="text-sm text-slate-500 font-bold text-left">{item.date} • {item.lyrics.substring(0, 30)}...</div> </div>
+                                                <button onClick={(e) => deleteLibraryItem(item.id, e)} className="p-4 text-slate-500 hover:text-red-400 transition-all active:scale-90 text-left"><Icon name="Trash" size={24} /></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+                        </section>
+                    </main>
+
+                    {showClearConfirm && (
+                        <div className="fixed inset-0 z-[400] modal-overlay flex items-center justify-center p-6 text-left" onClick={() => setShowClearConfirm(false)}>
+                            <div className="confirm-modal animate-in zoom-in-95 text-left" onClick={e => e.stopPropagation()}>
+                                <Icon name="AlertCircle" size={48} className="text-red-500 mx-auto mb-4" /><h3 className="text-xl font-black text-white mb-2 text-center">보관함을 비울까요?</h3><p className="text-slate-400 text-sm mb-8 text-center">저장된 모든 곡이 삭제되며<br/>복구할 수 없습니다.</p>
+                                <div className="grid grid-cols-2 gap-4"><button onClick={() => setShowClearConfirm(false)} className="py-4 bg-slate-800 rounded-xl font-black text-slate-300">취소</button><button onClick={clearAllLibrary} className="py-4 bg-red-600 rounded-xl font-black text-white">전체 삭제</button></div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {showApiModal && (
+                        <div className="fixed inset-0 z-[300] modal-overlay flex items-center justify-center p-12 text-left" onClick={() => setShowApiModal(false)}>
+                            <div className="bg-slate-900 border border-slate-600 w-full max-w-xl rounded-[3rem] p-10 space-y-8 text-left animate-in zoom-in-95 shadow-2xl">
+                                <div className="flex justify-between items-center text-left mb-4">
+                                    <div className="flex items-center gap-4 text-slate-300"><Icon name="Key" size={32} /><h3 className="font-black text-2xl uppercase tracking-widest">API Key Setup</h3></div>
+                                    <div className="cursor-pointer text-slate-500 hover:text-white transition-all text-left" onClick={() => setShowApiModal(false)}><Icon name="X" size={48} /></div>
+                                </div>
+                                
+                                {/* 탭 메뉴 */}
+                                <div className="flex gap-4 border-b border-slate-700 pb-1">
+                                    <button onClick={() => setApiProvider('gemini')} className={`api-tab ${apiProvider === 'gemini' ? 'active' : ''}`}>Gemini (Free)</button>
+                                    <button onClick={() => setApiProvider('gpt')} className={`api-tab ${apiProvider === 'gpt' ? 'active' : ''}`}>GPT-4o (Paid)</button>
+                                </div>
+
+                                {/* 입력 필드 */}
+                                <div className="space-y-4 text-left">
+                                    {apiProvider === 'gemini' ? (
+                                        <div className="animate-in fade-in slide-in-from-top-2">
+                                            <label className="text-[11px] font-black text-slate-500 uppercase ml-2 tracking-[0.3em] text-left">Google Gemini API Key</label>
+                                            <input type="password" placeholder="Gemini 키 입력..." value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-[1.5rem] p-6 text-2xl text-white outline-none focus:border-purple-500 shadow-inner text-left" autoFocus />
+                                        </div>
+                                    ) : (
+                                        <div className="animate-in fade-in slide-in-from-top-2">
+                                            <label className="text-[11px] font-black text-slate-500 uppercase ml-2 tracking-[0.3em] text-left">OpenAI GPT API Key</label>
+                                            <input type="password" placeholder="sk-..." value={gptKey} onChange={(e) => setGptKey(e.target.value)} className="w-full bg-slate-800 border border-slate-600 rounded-[1.5rem] p-6 text-2xl text-white outline-none focus:border-blue-500 shadow-inner text-left" autoFocus />
+                                        </div>
+                                    )}
+                                </div>
+                                <button onClick={() => { 
+                                    const keyToCheck = apiProvider === 'gemini' ? (geminiKey ? geminiKey.trim() : '') : (gptKey ? gptKey.trim() : '');
+                                    setShowApiModal(false); 
+                                    if (keyToCheck !== '') {
+                                        showToast("API 설정이 저장되었습니다."); 
+                                    } else {
+                                        showToast("주의: API 키가 입력되지 않았습니다.");
+                                    }
+                                }} className="w-full bg-slate-700 hover:bg-slate-600 py-8 rounded-[2rem] font-black text-2xl shadow-xl text-center text-white">Save & Close</button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {showPersonaModal && (
+                        <div className="fixed inset-0 z-[300] modal-overlay flex items-center justify-center p-6 text-left" onClick={() => setShowPersonaModal(false)}>
+                            <div className="bg-slate-900 border border-slate-600 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[3rem] p-8 space-y-8 animate-in zoom-in-95 custom-scrollbar shadow-2xl text-left" onClick={e => e.stopPropagation()}>
+                                <div className="flex justify-between items-center border-b border-slate-700 pb-4 text-left">
+                                    <div className="flex items-center gap-3 text-slate-300"><Icon name="User" size={24} /><h3 className="font-black text-xl uppercase tracking-widest text-left">Vocal Persona</h3></div>
+                                    <div className="cursor-pointer text-slate-500 hover:text-white transition-all text-left" onClick={() => setShowPersonaModal(false)}><Icon name="X" size={32} /></div>
+                                </div>
+                                <div className="bg-slate-950/80 border border-slate-700 rounded-2xl p-5 space-y-3 text-left">
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-black uppercase tracking-widest text-left"><Icon name="Save" size={12} /> 현재 기억된 프로필</div>
+                                    <div className="flex flex-wrap gap-2 text-left"><span className="persona-badge text-left">{persona.name}</span><span className="persona-badge text-left">{persona.gender}</span><span className="persona-badge text-left">{persona.age}</span></div>
+                                </div>
+                                <div className="space-y-6 text-left">
+                                    <div className="space-y-2 text-left">
+                                        <label className="text-[11px] font-black text-slate-500 uppercase ml-1 tracking-widest text-left flex items-center gap-2 text-left"><Icon name="Tag" size={12}/> 페르소나 이름</label>
+                                        <input type="text" value={persona.name} onChange={(e) => setPersona(prev => ({ ...prev, name: e.target.value }))} placeholder="예: 메인 보컬" className="w-full bg-slate-800 border border-slate-600 rounded-xl p-4 text-base font-bold text-white outline-none focus:border-slate-500 shadow-inner text-left" />
+                                    </div>
+                                    {[{ key: 'gender', label: '보컬 타입', opts: ['여성', '남성', '남녀 듀엣', '중성적', '합창단', '연주곡 (Instrumental)'] }, { key: 'age', label: '연령대', opts: ['10대', '20대', '30대', '중후한'] }, { key: 'tone', label: '목소리 톤', opts: ['맑고 깨끗한', '허스키한', '파워풀한', '감미로운', '날카로운'] }, { key: 'style', label: '창법', opts: ['감성적인', '기교있는', '담백한', '흐느끼는', '절제된'] }].map(item => (
+                                        <div key={item.key} className="space-y-2 text-left">
+                                            <label className="text-[11px] font-black text-slate-500 uppercase ml-1 tracking-widest text-left">{item.label}</label>
+                                            <select value={persona[item.key]} onChange={(e) => setPersona(prev => ({ ...prev, [item.key]: e.target.value }))} className="w-full bg-slate-800 border border-slate-600 rounded-xl p-4 text-base font-bold text-white outline-none focus:border-slate-500 appearance-none shadow-inner text-left">{item.opts.map(o => <option key={o} value={o}>{o}</option>)}</select>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => setShowPersonaModal(false)} className="w-full bg-purple-600 hover:bg-purple-500 py-5 rounded-2xl font-black text-lg shadow-xl text-center flex items-center justify-center gap-3 text-left"> <Icon name="Check" size={20} /> 저장 및 적용 </button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {showMoodModal && (
+                        <div className="fixed inset-0 z-[400] modal-overlay flex items-center justify-center p-6 text-left" onClick={() => setShowMoodModal(false)}>
+                            <div className="bg-[#0f172a] border border-slate-600 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[2rem] p-8 space-y-10 animate-in zoom-in-95 custom-scrollbar shadow-2xl text-left" onClick={e => e.stopPropagation()}>
+                                <div className="flex justify-between items-center text-left">
+                                    <h3 className="font-black text-2xl text-white text-left">분위기</h3>
+                                    <div className="cursor-pointer text-slate-500 hover:text-white transition-all text-left" onClick={() => setShowMoodModal(false)}><Icon name="X" size={32} /></div>
+                                </div>
+                                <div className="grid grid-cols-4 gap-2 text-left"> {moodsGrid.map(mood => ( <button key={mood} onClick={() => toggleMood(mood)} className={`mood-chip ${selectedMoods.includes(mood) ? 'selected' : ''} text-left`}> {mood} </button> ))} </div>
+                                <div className="space-y-6 pt-4 text-left">
+                                    <h3 className="font-black text-2xl text-white text-left">에너지</h3>
+                                    <div className="grid grid-cols-3 gap-3 text-left"> {energyOptions.map(opt => ( <button key={opt} onClick={() => setEnergy(opt)} className={`mood-chip !py-4 ${energy === opt ? 'selected' : ''} text-left`}> {opt} </button> ))} </div>
+                                </div>
+                                <button onClick={() => setShowMoodModal(false)} className="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all text-white text-center text-left"> 선택 완료 </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {showInstModal && (
+                        <div className="fixed inset-0 z-[400] modal-overlay flex items-center justify-center p-6 text-left" onClick={() => setShowInstModal(false)}>
+                            <div className="bg-[#0f172a] border border-slate-600 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[2rem] p-8 space-y-10 animate-in zoom-in-95 custom-scrollbar shadow-2xl text-left" onClick={e => e.stopPropagation()}>
+                                <div className="flex justify-between items-center text-left">
+                                    <div className="flex items-center gap-3 text-pink-400 text-left"> <Icon name="Layout" size={24} /> <h3 className="font-black text-2xl text-white text-left">악기 구성</h3> </div>
+                                    <div className="cursor-pointer text-slate-500 hover:text-white transition-all text-left" onClick={() => setShowInstModal(false)}><Icon name="X" size={32} /></div>
+                                </div>
+                                <div className="space-y-4 text-left">
+                                    <div className="flex justify-between items-center text-left">
+                                        <span className="text-slate-500 text-xs font-black uppercase tracking-widest text-left">전체 악기 리스트</span>
+                                        <span className="text-pink-400 text-xs font-black text-left">{selectedInstruments.length} / 5</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-left">
+                                        {instrumentsList.map(inst => (
+                                            <button key={inst} onClick={() => toggleInstrument(inst)} className={`inst-chip ${selectedInstruments.includes(inst) ? 'selected' : ''} text-left`}> {inst} </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowInstModal(false)} className="w-full bg-pink-600 hover:bg-pink-500 py-6 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all text-white text-center"> 선택 완료 </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(React.createElement(App));
+    </script>
 </body>
 </html>
